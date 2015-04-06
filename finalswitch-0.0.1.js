@@ -62,6 +62,28 @@ finalswitch.registerMachine = function(name, machine) {
 };
 
 /**
+ * Unregister machine.
+ * @param {string} name machine's name 
+ */
+finalswitch.unregisterMachine = function(name) {
+	var machine = finalswitch.machines[name];
+
+	for(var _switch in machine.switches) {
+		if(machineChain.hasOwnProperty(_switch)) {
+			var connectedMachines = machineChain[_switch];
+			for(var j = 0; j < connectedMachines.length; j++) {
+				if(connectedMachines[j] == machine) {
+					connectedMachines.splice(j, 1);
+					break;
+				}
+			}
+		}
+	}
+	
+	delete finalswitch.machines[name];
+};
+
+/**
  * Connect machine object to switches. The machine object monitored by this switches and
  * triggered a final switch 'on'. 
  * @param {string} name machine's name
@@ -118,7 +140,7 @@ finalswitch.switchOn = function(_switch) {
  * @param {string || Array} name switch
  */
 finalswitch.switchOff = function(_switch) {
-	if(Array.isArray(_switch)) {
+	if(!Array.isArray(_switch)) {
 		finalswitch.switches[_switch] = off;
 		
 		if(machineChain[_switch] !== undefined) {
@@ -159,7 +181,7 @@ finalswitch.reset = function() {
  * reset machines   
  */
 finalswitch.reset = function(name) {
-	machines[name].reset();
+	finalswitch.machines[name].reset();
 };
 
 /**
@@ -223,8 +245,7 @@ finalswitch.Machine = function(name, action) {
 	};
 	
 	self.off = function(name) {
-		self.switchs[name] = off;
-		offSwitchs.add(name);
+		self.switches[name] = off;
 	};
 	
 	self.reset = function() {
